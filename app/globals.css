@@ -34,8 +34,19 @@ body {
   overflow-x: hidden;
 }
 /* Input text color fix */
+
 input, textarea, select {
-  color: #0A0A0F !important;
+
+  color: #F5F0E8 !important;
+
+  caret-color: #F59E0B !important;
+
+}
+
+input::placeholder, textarea::placeholder {
+
+  color: rgba(245, 240, 232, 0.3) !important;
+
 }
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; }
