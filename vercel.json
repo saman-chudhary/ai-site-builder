@@ -4,9 +4,6 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "env": {
-    "ANTHROPIC_API_KEY": "@anthropic_api_key"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
@@ -15,12 +12,6 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/app/:path*",
-      "destination": "/dashboard/:path*"
     }
   ]
 }
