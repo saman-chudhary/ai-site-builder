@@ -34,19 +34,14 @@ body {
   overflow-x: hidden;
 }
 /* Input text color fix */
-
 input, textarea, select {
-
-  color: #F5F0E8 !important;
-
+  color: #111111 !important;
   caret-color: #F59E0B !important;
-
+  background-color: #ffffff !important;
 }
 
 input::placeholder, textarea::placeholder {
-
-  color: rgba(245, 240, 232, 0.3) !important;
-
+  color: #999999 !important;
 }
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; }
