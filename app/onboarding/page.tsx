@@ -170,7 +170,6 @@ function OnboardingContent() {
 }
 }
 
-  const progress = ((step + 1) / 4) * 100
 
   const steps = [
     {
