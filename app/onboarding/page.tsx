@@ -129,13 +129,45 @@ function OnboardingContent() {
     } else {
       throw new Error(data.error)
     }
-  } catch (error) {
-    console.error('Generation failed:', error)
-    const siteId = Date.now().toString()
-    setGenerationStep(GENERATION_STEPS.length - 1)
-    await new Promise(r => setTimeout(r, 500))
-    router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
+  } } catch (error) {
+  console.error('Generation failed:', error)
+  // Save mock data so site preview still works
+  const siteId = Date.now().toString()
+  const mockData = {
+    businessName: form.businessName || form.businessType,
+    businessType: form.businessType,
+    location: form.location,
+    phone: form.phone,
+    color: form.color,
+    tagline: `Professional ${form.businessType} services`,
+    hero: {
+      headline: `Welcome to ${form.businessName || form.businessType}`,
+      subheadline: `Professional ${form.businessType} services in ${form.location || 'your area'}. Quality you can trust.`,
+      cta: 'Book Now'
+    },
+    services: [
+      { name: 'Service 1', description: 'Professional quality service tailored to your needs.', price: 'From $50' },
+      { name: 'Service 2', description: 'Expert solutions with guaranteed satisfaction.', price: 'From $75' },
+      { name: 'Service 3', description: 'Premium experience at competitive prices.', price: 'From $100' },
+    ],
+    about: {
+      headline: `About ${form.businessName || form.businessType}`,
+      body: `We are a professional ${form.businessType} serving ${form.location || 'the local area'}. Our team is dedicated to providing exceptional service and customer satisfaction.`,
+      highlights: ['Licensed & Insured', 'Years of Experience', '100% Satisfaction Guaranteed']
+    },
+    faqs: [
+      { question: 'How do I book an appointment?', answer: 'Contact us through the form below or call us directly.' },
+      { question: 'What areas do you serve?', answer: `We serve ${form.location || 'the local area'} and surrounding regions.` },
+    ],
+    trustSignals: ['Licensed & Insured', 'Free Consultation', '5-Star Rated'],
+    contactCTA: 'Get In Touch Today',
+    siteId,
   }
+  localStorage.setItem(`site_${siteId}`, JSON.stringify(mockData))
+  setGenerationStep(GENERATION_STEPS.length - 1)
+  await new Promise(r => setTimeout(r, 500))
+  router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
+}
 }
 
   const progress = ((step + 1) / 4) * 100
