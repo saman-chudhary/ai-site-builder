@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, Suspense } from 'react'
+import { motion } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
   Zap, ArrowRight, ArrowLeft, Check, Sparkles, MapPin,
-  Globe, Phone, Clock, Image, Palette, ChevronRight
+  Phone, Clock, Palette
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -25,14 +25,14 @@ function getIcon(type: string): string {
 }
 
 const COLORS = [
-  { name: 'Amber', hex: '#F59E0B', class: 'bg-amber-500' },
-  { name: 'Slate', hex: '#64748B', class: 'bg-slate-500' },
-  { name: 'Rose', hex: '#F43F5E', class: 'bg-rose-500' },
-  { name: 'Sky', hex: '#0EA5E9', class: 'bg-sky-500' },
-  { name: 'Emerald', hex: '#10B981', class: 'bg-emerald-500' },
-  { name: 'Violet', hex: '#8B5CF6', class: 'bg-violet-500' },
-  { name: 'Orange', hex: '#F97316', class: 'bg-orange-500' },
-  { name: 'Pink', hex: '#EC4899', class: 'bg-pink-500' },
+  { name: 'Amber', hex: '#F59E0B' },
+  { name: 'Slate', hex: '#64748B' },
+  { name: 'Rose', hex: '#F43F5E' },
+  { name: 'Sky', hex: '#0EA5E9' },
+  { name: 'Emerald', hex: '#10B981' },
+  { name: 'Violet', hex: '#8B5CF6' },
+  { name: 'Orange', hex: '#F97316' },
+  { name: 'Pink', hex: '#EC4899' },
 ]
 
 const STYLES = [
@@ -44,6 +44,17 @@ const STYLES = [
 
 const PAGES = ['Home', 'About Us', 'Services', 'Gallery', 'Contact', 'Book Now', 'FAQ', 'Blog', 'Testimonials', 'Pricing']
 
+const GENERATION_STEPS = [
+  { label: 'Analyzing your business type...', icon: '🔍' },
+  { label: 'Writing homepage copy...', icon: '✍️' },
+  { label: 'Generating service pages...', icon: '📄' },
+  { label: 'Building SEO structure...', icon: '🔎' },
+  { label: 'Creating booking integration...', icon: '📅' },
+  { label: 'Optimizing for mobile...', icon: '📱' },
+  { label: 'Deploying to CDN...', icon: '🚀' },
+  { label: 'Your site is ready!', icon: '✅' },
+]
+
 interface FormData {
   businessType: string
   businessName: string
@@ -53,7 +64,6 @@ interface FormData {
   color: string
   style: string
   pages: string[]
-  features: string[]
 }
 
 function OnboardingContent() {
@@ -73,109 +83,139 @@ function OnboardingContent() {
     color: '#F59E0B',
     style: 'Modern & Clean',
     pages: ['Home', 'Services', 'About Us', 'Contact', 'Book Now'],
-    features: ['Online Booking', 'Contact Form'],
   })
 
-  const GENERATION_STEPS = [
-    { label: 'Analyzing your business type...', icon: '🔍' },
-    { label: 'Writing homepage copy...', icon: '✍️' },
-    { label: 'Generating service pages...', icon: '📄' },
-    { label: 'Building SEO structure...', icon: '🔎' },
-    { label: 'Creating booking integration...', icon: '📅' },
-    { label: 'Optimizing for mobile...', icon: '📱' },
-    { label: 'Deploying to CDN...', icon: '🚀' },
-    { label: 'Your site is ready!', icon: '✅' },
-  ]
-
   const handleGenerate = async () => {
-  setIsGenerating(true)
-  setGenerationStep(0)
+    setIsGenerating(true)
+    setGenerationStep(0)
 
-  try {
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        businessType: form.businessType,
-        businessName: form.businessName,
-        location: form.location,
-        style: form.style,
-        color: form.color,
-        pages: form.pages,
-      }),
-    })
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessType: form.businessType,
+          businessName: form.businessName,
+          location: form.location,
+          style: form.style,
+          color: form.color,
+          pages: form.pages,
+        }),
+      })
 
-    for (let i = 0; i < GENERATION_STEPS.length - 1; i++) {
-      await new Promise(r => setTimeout(r, 500))
-      setGenerationStep(i)
-    }
+      for (let i = 0; i < GENERATION_STEPS.length - 1; i++) {
+        await new Promise(r => setTimeout(r, 500))
+        setGenerationStep(i)
+      }
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (data.success) {
+      if (data.success) {
+        const siteId = Date.now().toString()
+        const siteData = {
+          ...data.data,
+          businessType: form.businessType,
+          location: form.location,
+          phone: form.phone,
+          color: form.color,
+          siteId,
+        }
+        localStorage.setItem(`site_${siteId}`, JSON.stringify(siteData))
+        setGenerationStep(GENERATION_STEPS.length - 1)
+        await new Promise(r => setTimeout(r, 800))
+        router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      console.error('Generation failed:', error)
       const siteId = Date.now().toString()
-      const siteData = {
-        ...data.data,
+      const mockData = {
+        businessName: form.businessName || form.businessType,
         businessType: form.businessType,
         location: form.location,
         phone: form.phone,
         color: form.color,
+        hero: {
+          headline: `Welcome to ${form.businessName || form.businessType}`,
+          subheadline: `Professional ${form.businessType} services in ${form.location || 'your area'}. Quality you can trust.`,
+          cta: 'Book Now',
+        },
+        services: [
+          { name: 'Service 1', description: 'Professional quality service tailored to your needs.', price: 'From $50' },
+          { name: 'Service 2', description: 'Expert solutions with guaranteed satisfaction.', price: 'From $75' },
+          { name: 'Service 3', description: 'Premium experience at competitive prices.', price: 'From $100' },
+        ],
+        about: {
+          headline: `About ${form.businessName || form.businessType}`,
+          body: `We are a professional ${form.businessType} serving ${form.location || 'the local area'}. Our team is dedicated to providing exceptional service.`,
+          highlights: ['Licensed & Insured', 'Years of Experience', '100% Satisfaction Guaranteed'],
+        },
+        faqs: [
+          { question: 'How do I book?', answer: 'Contact us through the form below or call us directly.' },
+          { question: 'What areas do you serve?', answer: `We serve ${form.location || 'the local area'} and surrounding regions.` },
+        ],
+        trustSignals: ['Licensed & Insured', 'Free Consultation', '5-Star Rated'],
+        contactCTA: 'Get In Touch Today',
         siteId,
       }
-      localStorage.setItem(`site_${siteId}`, JSON.stringify(siteData))
+      localStorage.setItem(`site_${siteId}`, JSON.stringify(mockData))
       setGenerationStep(GENERATION_STEPS.length - 1)
-      await new Promise(r => setTimeout(r, 800))
+      await new Promise(r => setTimeout(r, 500))
       router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
-    } else {
-      throw new Error(data.error)
     }
-  } } catch (error) {
-  console.error('Generation failed:', error)
-  // Save mock data so site preview still works
-  const siteId = Date.now().toString()
-  const mockData = {
-    businessName: form.businessName || form.businessType,
-    businessType: form.businessType,
-    location: form.location,
-    phone: form.phone,
-    color: form.color,
-    tagline: `Professional ${form.businessType} services`,
-    hero: {
-      headline: `Welcome to ${form.businessName || form.businessType}`,
-      subheadline: `Professional ${form.businessType} services in ${form.location || 'your area'}. Quality you can trust.`,
-      cta: 'Book Now'
-    },
-    services: [
-      { name: 'Service 1', description: 'Professional quality service tailored to your needs.', price: 'From $50' },
-      { name: 'Service 2', description: 'Expert solutions with guaranteed satisfaction.', price: 'From $75' },
-      { name: 'Service 3', description: 'Premium experience at competitive prices.', price: 'From $100' },
-    ],
-    about: {
-      headline: `About ${form.businessName || form.businessType}`,
-      body: `We are a professional ${form.businessType} serving ${form.location || 'the local area'}. Our team is dedicated to providing exceptional service and customer satisfaction.`,
-      highlights: ['Licensed & Insured', 'Years of Experience', '100% Satisfaction Guaranteed']
-    },
-    faqs: [
-      { question: 'How do I book an appointment?', answer: 'Contact us through the form below or call us directly.' },
-      { question: 'What areas do you serve?', answer: `We serve ${form.location || 'the local area'} and surrounding regions.` },
-    ],
-    trustSignals: ['Licensed & Insured', 'Free Consultation', '5-Star Rated'],
-    contactCTA: 'Get In Touch Today',
-    siteId,
   }
-  localStorage.setItem(`site_${siteId}`, JSON.stringify(mockData))
-  setGenerationStep(GENERATION_STEPS.length - 1)
-  await new Promise(r => setTimeout(r, 500))
-  router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
-}
-}
 
+  if (isGenerating) {
+    return (
+      <div className="min-h-screen mesh-bg flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-8"
+          >
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
+              <Zap size={32} className="text-amber-400" />
+            </motion.div>
+          </motion.div>
+          <h2 className="font-display text-3xl font-800 mb-2">Building your website</h2>
+          <p className="text-paper/40 font-body mb-12">Powered by AI</p>
+          <div className="space-y-3 mb-10 text-left">
+            {GENERATION_STEPS.map((gs, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: i <= generationStep ? 1 : 0.3, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className={`flex items-center gap-3 py-2 ${i <= generationStep ? 'text-paper' : 'text-paper/30'}`}
+              >
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 ${
+                  i < generationStep ? 'bg-electric/20 text-electric' : i === generationStep ? 'bg-amber-500/20 text-amber-400 animate-pulse' : 'bg-white/5'
+                }`}>
+                  {i < generationStep ? <Check size={12} /> : <span>{gs.icon}</span>}
+                </div>
+                <span className="text-sm font-body">{gs.label}</span>
+              </motion.div>
+            ))}
+          </div>
+          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-amber-500 to-electric rounded-full"
+              animate={{ width: `${((generationStep + 1) / GENERATION_STEPS.length) * 100}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-  const steps = [
+  const stepContent = [
     {
       title: 'Tell us about your business',
       subtitle: 'This powers your AI-generated content',
-      content: (
+      body: (
         <div className="space-y-4">
           <div>
             <label className="block text-paper/50 text-sm mb-2 font-body">Business Type *</label>
@@ -202,8 +242,8 @@ function OnboardingContent() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-paper/50 text-sm mb-2 font-body flex items-center gap-1.5">
-                <MapPin size={12} /> Location
+              <label className="block text-paper/50 text-sm mb-2 font-body">
+                <MapPin size={12} className="inline mr-1" /> Location
               </label>
               <input
                 type="text"
@@ -214,8 +254,8 @@ function OnboardingContent() {
               />
             </div>
             <div>
-              <label className="block text-paper/50 text-sm mb-2 font-body flex items-center gap-1.5">
-                <Phone size={12} /> Phone
+              <label className="block text-paper/50 text-sm mb-2 font-body">
+                <Phone size={12} className="inline mr-1" /> Phone
               </label>
               <input
                 type="text"
@@ -227,8 +267,8 @@ function OnboardingContent() {
             </div>
           </div>
           <div>
-            <label className="block text-paper/50 text-sm mb-2 font-body flex items-center gap-1.5">
-              <Clock size={12} /> Business Hours
+            <label className="block text-paper/50 text-sm mb-2 font-body">
+              <Clock size={12} className="inline mr-1" /> Business Hours
             </label>
             <input
               type="text"
@@ -244,11 +284,11 @@ function OnboardingContent() {
     {
       title: 'Choose your style',
       subtitle: 'Pick colors and design aesthetic',
-      content: (
+      body: (
         <div className="space-y-8">
           <div>
-            <label className="block text-paper/50 text-sm mb-3 font-body flex items-center gap-1.5">
-              <Palette size={12} /> Brand Color
+            <label className="block text-paper/50 text-sm mb-3 font-body">
+              <Palette size={12} className="inline mr-1" /> Brand Color
             </label>
             <div className="grid grid-cols-4 gap-3">
               {COLORS.map(c => (
@@ -282,9 +322,7 @@ function OnboardingContent() {
                     <div className="font-display font-600 text-sm text-paper">{s.name}</div>
                     <div className="text-paper/40 text-xs font-body">{s.desc}</div>
                   </div>
-                  {form.style === s.name && (
-                    <Check size={14} className="text-amber-400 ml-auto shrink-0 mt-0.5" />
-                  )}
+                  {form.style === s.name && <Check size={14} className="text-amber-400 ml-auto shrink-0 mt-0.5" />}
                 </button>
               ))}
             </div>
@@ -295,31 +333,29 @@ function OnboardingContent() {
     {
       title: 'Select your pages',
       subtitle: 'Choose which pages to generate',
-      content: (
+      body: (
         <div className="space-y-6">
-          <div>
-            <div className="flex flex-wrap gap-2">
-              {PAGES.map(page => {
-                const selected = form.pages.includes(page)
-                return (
-                  <button
-                    key={page}
-                    onClick={() => setForm(p => ({
-                      ...p,
-                      pages: selected ? p.pages.filter(pg => pg !== page) : [...p.pages, page]
-                    }))}
-                    className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm transition-all font-body ${
-                      selected
-                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
-                        : 'border-white/5 bg-ink-soft text-paper/50 hover:border-white/15 hover:text-paper/70'
-                    }`}
-                  >
-                    {selected && <Check size={12} />}
-                    {page}
-                  </button>
-                )
-              })}
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {PAGES.map(page => {
+              const selected = form.pages.includes(page)
+              return (
+                <button
+                  key={page}
+                  onClick={() => setForm(p => ({
+                    ...p,
+                    pages: selected ? p.pages.filter(pg => pg !== page) : [...p.pages, page]
+                  }))}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-sm transition-all font-body ${
+                    selected
+                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+                      : 'border-white/5 bg-ink-soft text-paper/50 hover:border-white/15 hover:text-paper/70'
+                  }`}
+                >
+                  {selected && <Check size={12} />}
+                  {page}
+                </button>
+              )
+            })}
           </div>
           <div className="bg-ink-soft rounded-xl p-4 border border-white/5">
             <div className="text-paper/40 text-xs font-mono mb-2">ALSO AUTO-GENERATING</div>
@@ -335,8 +371,8 @@ function OnboardingContent() {
     },
     {
       title: 'Review & Generate',
-      subtitle: 'Everything looks good? Let\'s build it.',
-      content: (
+      subtitle: "Everything looks good? Let's build it.",
+      body: (
         <div className="space-y-4">
           {[
             { label: 'Business', value: `${getIcon(form.businessType)} ${form.businessName || form.businessType}` },
@@ -359,7 +395,7 @@ function OnboardingContent() {
             <div className="flex items-start gap-3">
               <Sparkles size={16} className="text-amber-400 shrink-0 mt-0.5" />
               <p className="text-paper/60 text-sm font-body leading-relaxed">
-                AI will generate a complete website with custom copy, SEO pages, and mobile-optimized design in approximately <span className="text-amber-400 font-600">45 seconds</span>.
+                AI will generate a complete website in approximately <span className="text-amber-400 font-600">45 seconds</span>.
               </p>
             </div>
           </div>
@@ -368,57 +404,9 @@ function OnboardingContent() {
     },
   ]
 
-  if (isGenerating) {
-    return (
-      <div className="min-h-screen mesh-bg flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-8"
-          >
-            <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
-              <Zap size={32} className="text-amber-400" />
-            </motion.div>
-          </motion.div>
-          <h2 className="font-display text-3xl font-800 mb-2">Building your website</h2>
-          <p className="text-paper/40 font-body mb-12">Powered by AI · Takes about 45 seconds</p>
-
-          <div className="space-y-3 mb-10 text-left">
-            {GENERATION_STEPS.map((gs, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: i <= generationStep ? 1 : 0.3, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className={`flex items-center gap-3 py-2 ${i <= generationStep ? 'text-paper' : 'text-paper/30'}`}
-              >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 ${
-                  i < generationStep ? 'bg-electric/20 text-electric' : i === generationStep ? 'bg-amber-500/20 text-amber-400 animate-pulse' : 'bg-white/5'
-                }`}>
-                  {i < generationStep ? <Check size={12} /> : <span>{gs.icon}</span>}
-                </div>
-                <span className="text-sm font-body">{gs.label}</span>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-amber-500 to-electric rounded-full"
-              animate={{ width: `${((generationStep + 1) / GENERATION_STEPS.length) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen mesh-bg flex items-start justify-center p-6 pt-20">
       <div className="w-full max-w-xl">
-        {/* Header */}
         <div className="text-center mb-10">
           <Link href="/" className="inline-flex items-center gap-2 mb-8">
             <div className="w-7 h-7 bg-amber-500 rounded-lg flex items-center justify-center">
@@ -436,7 +424,6 @@ function OnboardingContent() {
           <span className="text-paper/30 text-xs font-mono">STEP {step + 1} OF 4</span>
         </div>
 
-        {/* Card */}
         <motion.div
           key={step}
           initial={{ opacity: 0, x: 20 }}
@@ -444,12 +431,11 @@ function OnboardingContent() {
           exit={{ opacity: 0, x: -20 }}
           className="bg-ink-muted border border-white/5 rounded-2xl p-8"
         >
-          <h2 className="font-display text-2xl font-800 mb-1">{steps[step].title}</h2>
-          <p className="text-paper/40 text-sm font-body mb-8">{steps[step].subtitle}</p>
-          {steps[step].content}
+          <h2 className="font-display text-2xl font-800 mb-1">{stepContent[step].title}</h2>
+          <p className="text-paper/40 text-sm font-body mb-8">{stepContent[step].subtitle}</p>
+          {stepContent[step].body}
         </motion.div>
 
-        {/* Navigation */}
         <div className="flex items-center justify-between mt-6">
           <button
             onClick={() => setStep(p => Math.max(0, p - 1))}
