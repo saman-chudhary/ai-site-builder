@@ -182,7 +182,7 @@ function DashboardContent() {
                   </div>
                 </div>
               </div>
-              <a href={siteId ? `/site/${siteId}` : '#'}
+              <a href={siteId ? `/site?id=${siteId}` : '#'}
   target="_blank"
   rel="noopener noreferrer"
   className="flex items-center gap-1.5 text-electric text-sm font-body shrink-0 mt-1"

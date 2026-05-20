@@ -1,23 +1,25 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function GeneratedSitePage() {
-  const params = useParams()
+function SiteContent() {
+  const searchParams = useSearchParams()
+  const siteId = searchParams.get('id')
   const [siteData, setSiteData] = useState<any>(null)
 
   useEffect(() => {
-    const stored = localStorage.getItem(`site_${params.id}`)
-    if (stored) {
-      setSiteData(JSON.parse(stored))
+    if (siteId) {
+      const stored = localStorage.getItem(`site_${siteId}`)
+      if (stored) setSiteData(JSON.parse(stored))
     }
-  }, [params.id])
+  }, [siteId])
 
   if (!siteData) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
-        <p style={{ color: '#9ca3af' }}>Loading site...</p>
+        <p style={{ color: '#9ca3af', fontFamily: 'sans-serif' }}>Loading your site...</p>
       </div>
     )
   }
@@ -26,8 +28,6 @@ export default function GeneratedSitePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#fff', color: '#111', fontFamily: 'sans-serif' }}>
-
-      {/* NAV */}
       <nav style={{ background: brand, padding: '1rem 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ color: '#fff', fontWeight: 800, fontSize: '1.25rem' }}>{siteData.businessName}</div>
         <div style={{ display: 'flex', gap: '1.5rem' }}>
@@ -40,7 +40,6 @@ export default function GeneratedSitePage() {
         </a>
       </nav>
 
-      {/* HERO */}
       <section style={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '4rem 2rem', background: `linear-gradient(135deg, ${brand}18 0%, #fff 70%)` }}>
         <div style={{ maxWidth: '700px' }}>
           <div style={{ display: 'inline-block', background: `${brand}20`, color: brand, padding: '0.25rem 1rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>
@@ -72,7 +71,6 @@ export default function GeneratedSitePage() {
         </div>
       </section>
 
-      {/* SERVICES */}
       <section id="services" style={{ padding: '5rem 2rem', background: '#f9fafb' }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <h2 style={{ textAlign: 'center', fontSize: '2.5rem', fontWeight: 900, marginBottom: '0.5rem' }}>Our Services</h2>
@@ -80,9 +78,7 @@ export default function GeneratedSitePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
             {siteData.services?.map((s: any, i: number) => (
               <div key={i} style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #f3f4f6' }}>
-                <div style={{ width: '40px', height: '40px', background: brand, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, marginBottom: '1rem' }}>
-                  {i + 1}
-                </div>
+                <div style={{ width: '40px', height: '40px', background: brand, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, marginBottom: '1rem' }}>{i + 1}</div>
                 <h3 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>{s.name}</h3>
                 <p style={{ color: '#6b7280', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '0.75rem' }}>{s.description}</p>
                 <div style={{ color: brand, fontWeight: 700, fontSize: '0.875rem' }}>{s.price}</div>
@@ -92,7 +88,6 @@ export default function GeneratedSitePage() {
         </div>
       </section>
 
-      {/* ABOUT */}
       <section id="about" style={{ padding: '5rem 2rem' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
           <div>
@@ -107,13 +102,10 @@ export default function GeneratedSitePage() {
               ))}
             </div>
           </div>
-          <div style={{ background: `linear-gradient(135deg, ${brand}, ${brand}88)`, borderRadius: '24px', height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>
-            🏢
-          </div>
+          <div style={{ background: `linear-gradient(135deg, ${brand}, ${brand}88)`, borderRadius: '24px', height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem' }}>🏢</div>
         </div>
       </section>
 
-      {/* FAQS */}
       {siteData.faqs && siteData.faqs.length > 0 && (
         <section style={{ padding: '5rem 2rem', background: '#f9fafb' }}>
           <div style={{ maxWidth: '640px', margin: '0 auto' }}>
@@ -130,7 +122,6 @@ export default function GeneratedSitePage() {
         </section>
       )}
 
-      {/* CONTACT */}
       <section id="contact" style={{ padding: '5rem 2rem' }}>
         <div style={{ maxWidth: '520px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem' }}>{siteData.contactCTA || 'Get In Touch'}</h2>
@@ -149,13 +140,19 @@ export default function GeneratedSitePage() {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer style={{ background: brand, padding: '2rem', textAlign: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '0.875rem' }}>
         <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.25rem' }}>{siteData.businessName}</div>
         <div>© {new Date().getFullYear()} {siteData.businessName}. All rights reserved.</div>
         <div style={{ marginTop: '0.5rem', color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem' }}>Built with Siteforge AI</div>
       </footer>
-
     </div>
+  )
+}
+
+export default function SitePage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#9ca3af' }}>Loading...</p></div>}>
+      <SiteContent />
+    </Suspense>
   )
 }
