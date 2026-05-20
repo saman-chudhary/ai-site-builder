@@ -84,7 +84,7 @@ function DashboardContent() {
   const justGenerated = searchParams.get('generated') === 'true'
   const generatedType = searchParams.get('type') || ''
   const generatedName = searchParams.get('name') || generatedType
-
+  const siteId = searchParams.get('siteId') || ''
   const [activeSite, setActiveSite] = useState(MOCK_SITES[0])
   const [copied, setCopied] = useState(false)
 
@@ -182,7 +182,11 @@ function DashboardContent() {
                   </div>
                 </div>
               </div>
-              <a href="#" className="flex items-center gap-1.5 text-electric text-sm font-body shrink-0 mt-1">
+              <a href={siteId ? `/site/${siteId}` : '#'}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="flex items-center gap-1.5 text-electric text-sm font-body shrink-0 mt-1"
+>
                 View site <ExternalLink size={12} />
               </a>
             </motion.div>

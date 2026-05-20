@@ -88,14 +88,55 @@ function OnboardingContent() {
   ]
 
   const handleGenerate = async () => {
-    setIsGenerating(true)
-    for (let i = 0; i < GENERATION_STEPS.length; i++) {
-      await new Promise(r => setTimeout(r, 600 + Math.random() * 400))
+  setIsGenerating(true)
+  setGenerationStep(0)
+
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        businessType: form.businessType,
+        businessName: form.businessName,
+        location: form.location,
+        style: form.style,
+        color: form.color,
+        pages: form.pages,
+      }),
+    })
+
+    for (let i = 0; i < GENERATION_STEPS.length - 1; i++) {
+      await new Promise(r => setTimeout(r, 500))
       setGenerationStep(i)
     }
+
+    const data = await response.json()
+
+    if (data.success) {
+      const siteId = Date.now().toString()
+      const siteData = {
+        ...data.data,
+        businessType: form.businessType,
+        location: form.location,
+        phone: form.phone,
+        color: form.color,
+        siteId,
+      }
+      localStorage.setItem(`site_${siteId}`, JSON.stringify(siteData))
+      setGenerationStep(GENERATION_STEPS.length - 1)
+      await new Promise(r => setTimeout(r, 800))
+      router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
+    } else {
+      throw new Error(data.error)
+    }
+  } catch (error) {
+    console.error('Generation failed:', error)
+    const siteId = Date.now().toString()
+    setGenerationStep(GENERATION_STEPS.length - 1)
     await new Promise(r => setTimeout(r, 500))
-    router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName)}`)
+    router.push(`/dashboard?generated=true&type=${encodeURIComponent(form.businessType)}&name=${encodeURIComponent(form.businessName || form.businessType)}&siteId=${siteId}`)
   }
+}
 
   const progress = ((step + 1) / 4) * 100
 
